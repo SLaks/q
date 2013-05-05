@@ -1294,7 +1294,7 @@ function all(promises) {
  * (or values)
  * @return a promise for an array of promises
  */
-Q.allResolved = allResolved;
+Q.allResolved = deprecate(allResolved, "allResolved", "allSettled");
 function allResolved(promises) {
     return when(promises, function (promises) {
         promises = array_map(promises, resolve);
@@ -1303,6 +1303,23 @@ function allResolved(promises) {
         })), function () {
             return promises;
         });
+    });
+}
+
+Q.allSettled = allSettled;
+function allSettled(values) {
+    return when(values, function (values) {
+        return all(array_map(values, function (value) {
+            return when(
+                value,
+                function (fulfillmentValue) {
+                    return { state: "fulfilled", value: fulfillmentValue };
+                },
+                function (reason) {
+                    return { state: "rejected", reason: reason };
+                }
+            );
+        }));
     });
 }
 
